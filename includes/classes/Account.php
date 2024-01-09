@@ -1,9 +1,11 @@
 <?php
 class Account
 {
+    private $conn;
     private $errorArray;
-    public function __construct()
+    public function __construct($conn)
     {
+        $this->conn = $conn;
         $this->errorArray = array("error" => "");
     }
 
@@ -15,12 +17,35 @@ class Account
         $this->validateEmails($em, $em2);
         $this->validatePasswords($pw, $pw2);
 
-        if (empty($this->errorArray)) {
+
+
+
+        if (empty($this->errorArray) || $this->errorArray["error"] == "") {
             // insert into db
-            return true;
+            echo "Register function is running";
+            return $this->insertUserDetails($un, $fn, $ln, $em, $pw);
         } else {
             return false;
         }
+    }
+
+    private function insertUserDetails($un, $fn, $ln, $em, $pw)
+    {
+        $encryptedPw = md5($pw);
+        $profilePic = "../../assets/images/profile-pics/placeholderProfilePic150x150.png";
+        $date = date("Y-m-d");
+        $sql = "INSERT INTO users VALUES (DEFAULT, '$un', '$fn', '$ln', '$em', '$encryptedPw', '$date', '$profilePic')";
+
+        $result = mysqli_query($this->conn, $sql);
+        return $result;
+    }
+
+    public function getError($error)
+    {
+        if (!in_array($error, $this->errorArray)) {
+            $error = "";
+        }
+        return "<span class='errorMessage'>$error</span>";
     }
 
     public function prepPostArr()
@@ -32,14 +57,6 @@ class Account
         $_POST['email2'] = $_POST['email2'] ?? null;
         $_POST['password'] = $_POST['password'] ?? null;
         $_POST['password2'] = $_POST['password2'] ?? null;
-    }
-
-    public function getError($error)
-    {
-        if (!in_array($error, $this->errorArray)) {
-            $error = "";
-        }
-        return "<span class='errorMessage'>$error</span>";
     }
     private function validateUsername($un)
     {
