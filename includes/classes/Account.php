@@ -5,8 +5,23 @@ class Account
     private $errorArray;
     public function __construct($conn)
     {
+        $this->prepPostArr();
         $this->conn = $conn;
-        $this->errorArray = array("error" => "");
+        $this->errorArray = array();
+    }
+
+    public function login($un, $pw)
+    {
+        $pw = md5($pw);
+        $sql = "SELECT * FROM users WHERE username='$un' AND password='$pw'";
+
+        $query = mysqli_query($this->conn, $sql);
+
+        if (mysqli_num_rows($query) == 1) {
+            return true;
+        }
+        array_push($this->errorArray, Constants::$loginFailed);
+        return false;
     }
 
     public function register($un, $fn, $ln, $em, $em2, $pw, $pw2)
@@ -16,11 +31,12 @@ class Account
         $this->validateLastName($ln);
         $this->validateEmails($em, $em2);
         $this->validatePasswords($pw, $pw2);
+        // echo '<pre>';
+        // print_r($this->errorArray);
+        // echo '</pre>';
+        // exit;
 
-
-
-
-        if (empty($this->errorArray) || $this->errorArray["error"] == "") {
+        if (empty($this->errorArray)) {
             // insert into db
             echo "Register function is running";
             return $this->insertUserDetails($un, $fn, $ln, $em, $pw);
@@ -34,7 +50,8 @@ class Account
         $encryptedPw = md5($pw);
         $profilePic = "../../assets/images/profile-pics/placeholderProfilePic150x150.png";
         $date = date("Y-m-d");
-        $sql = "INSERT INTO users VALUES (DEFAULT, '$un', '$fn', '$ln', '$em', '$encryptedPw', '$date', '$profilePic')";
+        $sql = "INSERT INTO users (username, firstName, lastName, email, password, signUpDate, profilePic)
+        VALUES ('$un', '$fn', '$ln', '$em', '$encryptedPw', '$date', '$profilePic')";
 
         $result = mysqli_query($this->conn, $sql);
         return $result;
@@ -65,12 +82,17 @@ class Account
             return;
         }
 
-        //TODO: check if username exists
+        $checkUsernameQuery = mysqli_query($this->conn, "SELECT username FROM users WHERE username='$un'");
+
+        if (mysqli_num_rows($checkUsernameQuery) != 0) {
+            array_push($this->errorArray, Constants::$usernameTaken);
+            return;
+        }
     }
 
     private function validateFirstName($fn)
     {
-        if (strlen($fn) > 25 || strlen($fn) < 5) {
+        if (strlen($fn) > 25 || strlen($fn) < 2) {
             array_push($this->errorArray, Constants::$firstNameCharacters);
             return;
         }
@@ -96,7 +118,11 @@ class Account
             return;
         }
 
-        //TODO: Check that the usernam hasn't been used
+        $checkEmailQuery = mysqli_query($this->conn, "SELECT email FROM users WHERE email='$em'");
+        if (mysqli_num_rows($checkEmailQuery) != 0) {
+            array_push($this->errorArray, Constants::$emailTaken);
+            return;
+        }
     }
 
     private function validatePasswords($pw, $pw2)

@@ -21,8 +21,6 @@ function sanitizeFormString($inputText)
     return $inputText;
 }
 
-$account->prepPostArr();
-
 if (isset($_POST['registerButton'])) {
     //Register button was pressed
     $username = sanitizeFormUsername($_POST['username']);
