@@ -48,7 +48,7 @@ class Account
     private function insertUserDetails($un, $fn, $ln, $em, $pw)
     {
         $encryptedPw = md5($pw);
-        $profilePic = "../../assets/images/profile-pics/placeholderProfilePic150x150.png";
+        $profilePic = "../../assets/images/profile-pics/head_emerald.png";
         $date = date("Y-m-d");
         $sql = "INSERT INTO users (username, firstName, lastName, email, password, signUpDate, profilePic)
         VALUES ('$un', '$fn', '$ln', '$em', '$encryptedPw', '$date', '$profilePic')";
